@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Idea Timetable</string>
+    <string name="myNote">Ghi chú của tôi</string>
+    <string name="findNote">Tìm ghi chú</string>
+    <string name="title">Tiêu đề</string>
+    <string name="subtitle">Phụ đề</string>
+    <string name="enterNote">Nhập ghi chú</string>
 </resources>
