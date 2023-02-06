@@ -1,7 +1,8 @@
-package com.duong.ideatimetable
+package com.duong.ideatimetable.Activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.duong.ideatimetable.R
 
 class CreateNoteScreen : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
