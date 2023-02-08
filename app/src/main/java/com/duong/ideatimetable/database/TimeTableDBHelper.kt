@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.duong.ideatimetable.entity.*
+import kotlin.random.Random
 
 class TimeTableDBHelper(
     context: Context?,
@@ -125,5 +126,24 @@ class TimeTableDBHelper(
     fun execSQL(query: String){
         val db = this.writableDatabase
         db.execSQL(query)
+    }
+    fun getAnUniqueId(tableName: String): String{
+        val random = Random
+        var check: Boolean
+        var randomstr: String
+        do {
+            check = false
+            val strleng = random.nextInt()%15+1
+            val charset = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789"
+            randomstr =  (1..strleng)
+                .map { charset.random() }
+                .joinToString("")
+            val a = rawQuery("select * from "+tableName+" where id = "+randomstr)
+            if (a?.moveToFirst()==true){
+                check = true
+            }
+        }
+            while (check);
+        return randomstr
     }
 }

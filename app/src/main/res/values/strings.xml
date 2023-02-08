@@ -5,4 +5,5 @@
     <string name="title">Tiêu đề</string>
     <string name="subtitle">Phụ đề</string>
     <string name="enterNote">Nhập ghi chú</string>
+    <string name="edit_time_on">Ngày sửa</string>
 </resources>
