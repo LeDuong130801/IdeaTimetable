@@ -1,11 +1,11 @@
-package com.duong.ideatimetable.Database
+package com.duong.ideatimetable.database
 
 import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.os.Build
-import com.duong.ideatimetable.Entity.*
+import com.duong.ideatimetable.entity.*
 
 class TimeTableDBHelper(
     context: Context?,
@@ -14,15 +14,15 @@ class TimeTableDBHelper(
     version: Int
 ) : SQLiteOpenHelper(context, name, factory, version) {
     override fun onCreate(db: SQLiteDatabase) {
-        var queryAnh = "create table if not exists anh(\n" +
+        val queryAnh = "create table if not exists anh(\n" +
                 "id text,\n" +
                 "url text\n" +
                 ")"
-        var queryMau = "create table if not exists mau(\n" +
+        val queryMau = "create table if not exists mau(\n" +
                 "id text,\n" +
                 "ma text\n" +
                 ")"
-        var queryThongBao = "create table if not exists thongbao(\n" +
+        val queryThongBao = "create table if not exists thongbao(\n" +
                 "id text,\n" +
                 "laptheongay text,\n" +
                 "ngaylap text,\n" +
@@ -41,7 +41,7 @@ class TimeTableDBHelper(
                 "thongbao_id text,\n" +
                 "anh_id text\n" +
                 ")"
-        var queryNhiemVu = "create table if not exists nhiemvu(\n" +
+        val queryNhiemVu = "create table if not exists nhiemvu(\n" +
                 "id text,\n" +
                 "noidung text,\n" +
                 "hoanthanh text,\n" +
@@ -62,12 +62,12 @@ class TimeTableDBHelper(
         db.execSQL("drop table if exists thongbao")
         onCreate(db)
     }
-    fun createDB(){
+    fun openOrCreateDB(){
         val db = SQLiteDatabase.openOrCreateDatabase("timetable.db", null)
         onCreate(db)
     }
     fun taoGhiChu(ghiChu: GhiChu){
-        var values = ContentValues()
+        val values = ContentValues()
         values.put("id", ghiChu.id)
         values.put("tieude", ghiChu.tieuDe)
         values.put("phude", ghiChu.phuDe)
@@ -117,5 +117,13 @@ class TimeTableDBHelper(
         val db = this.writableDatabase
         db.insert("mau", null, values)
         db.close()
+    }
+    fun rawQuery(query: String): Cursor?{
+        val db = this.readableDatabase
+        return db.rawQuery(query, null)
+    }
+    fun execSQL(query: String){
+        val db = this.writableDatabase
+        db.execSQL(query)
     }
 }

@@ -1,4 +1,4 @@
-package com.duong.ideatimetable.Entity
+package com.duong.ideatimetable.entity
 
 class Mau (
     var id: String,

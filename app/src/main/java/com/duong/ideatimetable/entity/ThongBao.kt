@@ -1,4 +1,4 @@
-package com.duong.ideatimetable.Entity
+package com.duong.ideatimetable.entity
 
 class ThongBao(
     var id: String,
