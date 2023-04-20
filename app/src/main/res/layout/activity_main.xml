@@ -47,6 +47,7 @@
             android:hint="@string/findNote"
             android:layout_marginStart="@dimen/_12sdp"
             android:includeFontPadding="false"
+            android:textColor="@color/colorText"
             android:textColorHint="@color/colorTextHint"
             android:textSize="@dimen/_13ssp"/>
     </LinearLayout>

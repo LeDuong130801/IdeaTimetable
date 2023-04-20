@@ -1,23 +1,25 @@
 package com.duong.ideatimetable.adapter
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.opengl.Visibility
-import android.provider.MediaStore
+import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.duong.ideatimetable.R
+import com.duong.ideatimetable.activity.EditNoteScreen
 import com.duong.ideatimetable.database.TimeTableDBHelper
 import com.duong.ideatimetable.entity.GhiChu
-import kotlinx.android.synthetic.main.activity_create_note_screen.*
 import kotlinx.android.synthetic.main.item_container_ghichu.view.*
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
+import java.io.File
+
 
 class GhiChuAdapter: RecyclerView.Adapter<GhiChuAdapter.GhiChuViewHolder> {
     val arr: MutableList<GhiChu>
@@ -32,6 +34,7 @@ class GhiChuAdapter: RecyclerView.Adapter<GhiChuAdapter.GhiChuViewHolder> {
         var phuDe = itemView.noiDungPhuDe
         var anh = itemView.noiDungAnh
         var ngay = itemView.noiDungNgay
+        var container = itemView.l_container
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GhiChuViewHolder {
@@ -43,16 +46,20 @@ class GhiChuAdapter: RecyclerView.Adapter<GhiChuAdapter.GhiChuViewHolder> {
             holder.tieuDe.text = arr[position].tieuDe
             holder.phuDe.text = arr[position].phuDe
             holder.ngay.text = arr[position].ngayTao
-            val b = layAnhTuUri(layAnh(arr[position].anhId))
+            val b = layAnhTuPath(layAnh(arr[position].anhId))
             if(b!=null) {
                 val byteArrayOutputStream = ByteArrayOutputStream()
-                b?.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream)
-                holder.anh.setImageBitmap(layAnhTuUri(layAnh(arr[position].anhId)))
+                b.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream)
+                holder.anh.setImageBitmap(b)
                 holder.anh.visibility = View.VISIBLE
 //                Toast.makeText(context, ""+layAnhTuUri(layAnh(arr[position].anhId))?.height, Toast.LENGTH_LONG).show()
             }
             else{
                 holder.anh.visibility = View.GONE
+            }
+            holder.container.setOnClickListener{
+                val gotoEditNote = Intent(context, EditNoteScreen::class.java)
+
             }
         }
     }
@@ -76,5 +83,22 @@ class GhiChuAdapter: RecyclerView.Adapter<GhiChuAdapter.GhiChuViewHolder> {
     fun layAnhTuUri(strUri: String): Bitmap? {
         if (strUri == "0") return null;
         return BitmapFactory.decodeFile(strUri)
+    }
+    fun layAnhTuPath(strPath: String): Bitmap? {
+        val imgFile = File(strPath)
+        if(imgFile.exists()){
+            return BitmapFactory.decodeFile(imgFile.absolutePath)
+        }
+        if(!strPath.contains("content")){
+            return null
+        }
+        val strUri = Uri.parse(strPath)
+        val inputSteam = strUri.let { itn -> context.contentResolver.openInputStream(itn) }
+        val bitmap: Bitmap? = BitmapFactory.decodeStream(inputSteam)
+        if(bitmap!= null){
+            return bitmap
+        }
+        else
+        return null
     }
 }

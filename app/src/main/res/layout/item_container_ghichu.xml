@@ -8,7 +8,8 @@
     android:layout_marginStart="@dimen/_10sdp"
     android:layout_marginEnd="@dimen/_10sdp"
     android:paddingBottom="@dimen/_6sdp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:id="@+id/l_container">
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/noiDungAnh"
         android:layout_width="match_parent"

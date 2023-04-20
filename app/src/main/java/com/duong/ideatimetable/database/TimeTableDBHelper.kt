@@ -17,12 +17,12 @@ class TimeTableDBHelper(
     override fun onCreate(db: SQLiteDatabase) {
         val queryAnh = "create table if not exists anh(\n" +
                 "id text,\n" +
-                "url text\n" +
-                ")"
+                "url text,\n" +
+                "trangthai text)"
         val queryMau = "create table if not exists mau(\n" +
                 "id text,\n" +
-                "ma text\n" +
-                ")"
+                "ma text\n,\n" +
+                "trangthai text)"
         val queryThongBao = "create table if not exists thongbao(\n" +
                 "id text,\n" +
                 "laptheongay text,\n" +
@@ -30,8 +30,8 @@ class TimeTableDBHelper(
                 "ambao text,\n" +
                 "giobatdau text,\n" +
                 "gioketthuc text,\n" +
-                "lapambao text\n" +
-                ")"
+                "lapambao text,\n" +
+                "trangthai text)"
         val queryGhiChu = "create table if not exists ghichu (\n" +
                 "id text,\n" +
                 "tieude text,\n" +
@@ -41,13 +41,14 @@ class TimeTableDBHelper(
                 "user_id text,\n" +
                 "thongbao_id text,\n" +
                 "anh_id text,\n" +
-                "mau_id text)"
+                "mau_id text,\n" +
+                "trangthai text)"
         val queryNhiemVu = "create table if not exists nhiemvu(\n" +
                 "id text,\n" +
                 "noidung text,\n" +
                 "hoanthanh text,\n" +
-                "ghichu_id text\n" +
-                ")"
+                "ghichu_id text,\n" +
+                "trangthai text)"
         db.execSQL(queryThongBao)
         db.execSQL(queryAnh)
         db.execSQL(queryMau)
@@ -68,7 +69,7 @@ class TimeTableDBHelper(
         onCreate(db)
     }
     fun taoGhiChu(ghiChu: GhiChu){
-        val str = "insert into ghichu(id, tieude, phude, noidung, ngaytao, user_id, thongbao_id, anh_id, mau_id, tranghhai) values (\"" +
+        val str = "insert into ghichu(id, tieude, phude, noidung, ngaytao, user_id, thongbao_id, anh_id, mau_id, trangthai) values (\"" +
                 ghiChu.id+"\",\""+
                 ghiChu.tieuDe+"\",\""+
                 ghiChu.phuDe+"\",\""+
@@ -92,7 +93,7 @@ class TimeTableDBHelper(
                 "\"$noidung\","+
                 "$hoanthanh,"+
                 "\"$ghichuId\","+
-                "\"0\","
+                "\"0\")"
         execSQL(strSQL)
     }
     fun taoThongBao(thongBao: ThongBao){
@@ -115,7 +116,7 @@ class TimeTableDBHelper(
                 "\"$gioBatDau\","+
                 "\"$gioKetThuc\","+
                 "\"$lapAmBao\","+
-                "\"0\","
+                "\"0\")"
         execSQL(strSQL)
     }
     fun taoAnh(anh: Anh){
@@ -124,7 +125,7 @@ class TimeTableDBHelper(
         val strSQL = "insert into anh(id, url, trangthai) values(" +
                 "\"$id\","+
                 "\"$url\","+
-                "\"0\","
+                "\"0\")"
         execSQL(strSQL)
     }
     fun taoMau(mau: Mau){
@@ -133,7 +134,7 @@ class TimeTableDBHelper(
         val strSQL = "insert into mau(id, ma, trangthai) values(" +
                 "\"$id\","+
                 "\"$ma\","+
-                "\"0\","
+                "\"0\")"
         execSQL(strSQL)
     }
     fun rawQuery(query: String): Cursor?{
@@ -175,7 +176,7 @@ class TimeTableDBHelper(
         taoAnh(Anh(id, url, "0"))
         return id
     }
-    private fun xoaDuLieuNhiemVuTamThoi(){
+    fun xoaDuLieuNhiemVuTamThoi(){
         xoaDuLieuTam("nhiemvu")
     }
     fun xoaDuLieuGhiChuTamThoi(){
@@ -191,7 +192,7 @@ class TimeTableDBHelper(
         xoaDuLieuTam("thongbao")
     }
     private fun xoaDuLieuTam(tableName: String){
-        execSQL("delete $tableName where trangthai = \"0\"")
+        execSQL("delete from $tableName where trangthai = \"0\"")
     }
     fun luuDuLieuTam(tableName: String, listId: MutableList<String>){
         for(id in listId){

@@ -3,6 +3,7 @@
     <color name="colorPrimary">#292929</color>
     <color name="colorPrimaryDark">#292929</color>
     <color name="colorWhite">#FFFFFF</color>
+    <color name="colorText">#ffffff</color>
     <color name="colorSearchIcon">#dbdbdb</color>
     <color name="colorAccent">#fdbe3b</color>
     <color name="colorTextHint">#7b7b7b</color>

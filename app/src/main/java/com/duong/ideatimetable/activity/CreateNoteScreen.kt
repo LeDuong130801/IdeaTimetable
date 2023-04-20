@@ -1,17 +1,26 @@
 package com.duong.ideatimetable.activity
 
+import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
+import android.icu.util.Output
+import android.media.MediaCas
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.MediaStore.MediaColumns
+import android.view.Gravity.apply
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
+import androidx.core.app.ActivityCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -28,6 +37,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
+import java.io.OutputStream
 import java.time.LocalDate
 import java.util.*
 
@@ -36,13 +46,16 @@ class CreateNoteScreen : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_note_screen)
+        ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), 1)
+        ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
         val db = TimeTableDBHelper(this.applicationContext, "timetable.db", null, 1)
-        db.clearTempNhiemVu()
+        db.xoaDuLieuNhiemVuTamThoi()
         db.close()
         khoiTaoSuKien()
     }
     lateinit var listNhiemVu: MutableList<NhiemVu>
     var anhId = "0"
+    var bitmapAnh: Bitmap? = null
     private fun khoiTaoSuKien(){
         hoanThanhTaoGhiChu.setOnClickListener{
             val db = TimeTableDBHelper(this, "timetable.db", null, 1)
@@ -51,7 +64,9 @@ class CreateNoteScreen : AppCompatActivity() {
             val noiDung = enterContent.text.toString()
             val ngayTao = LocalDate.now().toString()
             val id = db.getAnUniqueId("ghichu")
-            val ghiChu = GhiChu(id, tieuDe, phuDe, noiDung, ngayTao, "0", "0", anhId, "0")
+            if (bitmapAnh!= null)
+                saveImageToStorage()
+            val ghiChu = GhiChu(id, tieuDe, phuDe, noiDung, ngayTao, "0", "0", anhId, "0", "1")
             db.taoGhiChu(ghiChu)
             db.close()
             this.finish()
@@ -63,7 +78,7 @@ class CreateNoteScreen : AppCompatActivity() {
             chonAnhTuThuVien()
         }
         themNhiemVu.setOnClickListener {
-            listNhiemVu.add(NhiemVu("0","",false,"0" ))
+            listNhiemVu.add(NhiemVu("0","",false,"0", "0"))
             rcvNhiemVu.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)
             rcvNhiemVu.adapter = NhiemVuAdapter(this.applicationContext, listNhiemVu)
         }
@@ -110,13 +125,14 @@ class CreateNoteScreen : AppCompatActivity() {
 //                        options.inJustDecodeBounds = true
 //                        val bitmap: Bitmap? = BitmapFactory.decodeStream(inputSteam, Rect(),options)
                         val bitmap: Bitmap? = BitmapFactory.decodeStream(inputSteam)
+                        bitmapAnh = bitmap
                         val byteArrayOutputStream = ByteArrayOutputStream()
-                        bitmap?.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream)
+                        bitmap?.compress(Bitmap.CompressFormat.JPEG, 25, byteArrayOutputStream)
                         anhtest.setImageBitmap(bitmap)
                         anhtest.isGone = false
                         anhtest.isVisible = true
-                        val db = TimeTableDBHelper(this, "timetable.db", null, 1)
-                        anhId = db.taoVaLayIdAnh(getPathFromUri(imageUri))
+//                        val db = TimeTableDBHelper(this, "timetable.db", null, 1)
+//                        anhId = db.taoVaLayIdAnh(getPathFromUri(imageUri))
                     }
                 } catch (e: FileNotFoundException) {
                     e.printStackTrace()
@@ -141,5 +157,73 @@ class CreateNoteScreen : AppCompatActivity() {
             else filePath = "0"
         }
         return filePath
+    }
+//    private fun getImageOfView(view: CardView){
+//        var image: Bitmap? = null
+//    }
+private fun saveImageToStorage(bitmap: Bitmap){
+    val imageName = "ideatimetable_${System.currentTimeMillis()}.jpg"
+    var fos: OutputStream? = null
+    var path: String? = null
+    if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.Q){
+        this.contentResolver?.also { resolver->
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, imageName)
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM+"/Ideatimetable")
+            }
+            val imageUri: Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            if(imageUri != null)
+                path = getPathFromUri(imageUri)
+            fos =  imageUri?.let{
+                resolver.openOutputStream(it)
+            }
+        }
+    }
+    else{
+        val imageDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val image = File(imageDirectory, imageName)
+        fos = FileOutputStream(image)
+    }
+    fos?.use {
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 25, it)
+    }
+    fos?.close()
+    if(path!=null){
+        val db = TimeTableDBHelper(this, "timetable.db", null, 1)
+        anhId = db.taoVaLayIdAnh(path!!)
+    }
+}
+    private fun saveImageToStorage(){
+        val imageName = "ideatimetable_${System.currentTimeMillis()}.jpg"
+        var fos: OutputStream? = null
+        var path: String? = null
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.Q){
+            this.contentResolver?.also { resolver->
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, imageName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM+"/Ideatimetable")
+                }
+                val imageUri: Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                if(imageUri != null)
+                    path = getPathFromUri(imageUri)
+                fos =  imageUri?.let{
+                    resolver.openOutputStream(it)
+                }
+            }
+        }
+        else{
+            val imageDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            val image = File(imageDirectory, imageName)
+            fos = FileOutputStream(image)
+        }
+        fos?.use {
+            bitmapAnh?.compress(Bitmap.CompressFormat.JPEG, 25, it)
+        }
+        if(path!=null){
+            val db = TimeTableDBHelper(this, "timetable.db", null, 1)
+            anhId = db.taoVaLayIdAnh(path!!)
+        }
     }
 }

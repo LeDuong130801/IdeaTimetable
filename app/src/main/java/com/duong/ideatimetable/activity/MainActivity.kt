@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.duong.ideatimetable.R
 import com.duong.ideatimetable.adapter.GhiChuAdapter
@@ -17,11 +18,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), 1)
         khoiTaoSuKien()
         taiGhiChu()
     }
     private fun khoiTaoSuKien(){
         themGhiChuMoi.setOnClickListener {
+
             val intent = Intent(this, CreateNoteScreen::class.java)
             startActivity(intent)
         }
