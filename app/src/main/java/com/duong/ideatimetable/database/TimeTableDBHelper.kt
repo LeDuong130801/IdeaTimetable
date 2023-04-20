@@ -1,11 +1,11 @@
 package com.duong.ideatimetable.database
 
-import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.duong.ideatimetable.entity.*
+import kotlin.math.abs
 import kotlin.random.Random
 
 class TimeTableDBHelper(
@@ -40,8 +40,8 @@ class TimeTableDBHelper(
                 "ngaytao text,\n" +
                 "user_id text,\n" +
                 "thongbao_id text,\n" +
-                "anh_id text\n" +
-                ")"
+                "anh_id text,\n" +
+                "mau_id text)"
         val queryNhiemVu = "create table if not exists nhiemvu(\n" +
                 "id text,\n" +
                 "noidung text,\n" +
@@ -68,56 +68,73 @@ class TimeTableDBHelper(
         onCreate(db)
     }
     fun taoGhiChu(ghiChu: GhiChu){
-        val values = ContentValues()
-        values.put("id", ghiChu.id)
-        values.put("tieude", ghiChu.tieuDe)
-        values.put("phude", ghiChu.phuDe)
-        values.put("noidung", ghiChu.noiDung)
-        values.put("ngaytao", ghiChu.ngayTao)
-        values.put("user_id", ghiChu.userId)
-        values.put("thongbao_id", ghiChu.thongBaoId)
-        values.put("anh_id", ghiChu.anhId)
-        val db = this.writableDatabase
-        db.insert("ghichu", null, values)
-        db.close()
+        val str = "insert into ghichu(id, tieude, phude, noidung, ngaytao, user_id, thongbao_id, anh_id, mau_id, tranghhai) values (\"" +
+                ghiChu.id+"\",\""+
+                ghiChu.tieuDe+"\",\""+
+                ghiChu.phuDe+"\",\""+
+                ghiChu.noiDung+"\",\""+
+                ghiChu.ngayTao+"\",\""+
+                ghiChu.userId+"\",\""+
+                ghiChu.thongBaoId+"\",\""+
+                ghiChu.anhId+"\",\""+
+                ghiChu.mauNenId+"\",\"0\")"
+        execSQL(str)
     }
     fun taoNhiemVu(nhiemVu: NhiemVu){
-        val values = ContentValues()
-        values.put("id", nhiemVu.id)
-        values.put("noidung", nhiemVu.noiDung)
-        values.put("hoanthanh", nhiemVu.hoanThanh)
-        values.put("ghichu_id", nhiemVu.ghiChuId)
-        val db = this.writableDatabase
-        db.insert("nhiemvu", null, values)
-        db.close()
+        val id = nhiemVu.id
+        val noidung = nhiemVu.noiDung
+        val hoanthanh = if (nhiemVu.hoanThanh){
+            "1"
+        } else "0"
+        val ghichuId = nhiemVu.ghiChuId
+        val strSQL = "insert into nhiemvu(id, noidung, hoanthanh, ghichu_id, trangthai) values(" +
+                "\"$id\","+
+                "\"$noidung\","+
+                "$hoanthanh,"+
+                "\"$ghichuId\","+
+                "\"0\","
+        execSQL(strSQL)
     }
     fun taoThongBao(thongBao: ThongBao){
-        val values = ContentValues()
-        values.put("id", thongBao.id)
-        values.put("laptheongay", thongBao.lapTheoNgay)
-        values.put("ambao", thongBao.amBao)
-        values.put("giobatdau", thongBao.gioBatDau)
-        values.put("gioketthuc", thongBao.gioKetThuc)
-        values.put("lapambao", thongBao.lapAmBao)
-        val db = this.writableDatabase
-        db.insert("thongbao", null, values)
-        db.close()
+        val id = thongBao.id
+        val lapTheoNgay = if (thongBao.lapTheoNgay){
+            "1"
+        } else "0"
+        val ngayLap = thongBao.ngayLap
+        val amBao = if (thongBao.amBao){
+            "1"
+        } else "0"
+        val gioBatDau = thongBao.gioBatDau
+        val gioKetThuc = thongBao.gioKetThuc
+        val lapAmBao = thongBao.lapAmBao
+        val strSQL = "insert into thongbao(id, laptheongay, ngaylap, ambao, giobatdau, gioketthuc, lapambao, trangthai) values(" +
+                "\"$id\","+
+                "\"$lapTheoNgay\","+
+                "$ngayLap,"+
+                "\"$amBao\","+
+                "\"$gioBatDau\","+
+                "\"$gioKetThuc\","+
+                "\"$lapAmBao\","+
+                "\"0\","
+        execSQL(strSQL)
     }
     fun taoAnh(anh: Anh){
-        val values = ContentValues()
-        values.put("id", anh.id)
-        values.put("url", anh.url)
-        val db = this.writableDatabase
-        db.insert("anh", null, values)
-        db.close()
+        val id = anh.id
+        val url = anh.url
+        val strSQL = "insert into anh(id, url, trangthai) values(" +
+                "\"$id\","+
+                "\"$url\","+
+                "\"0\","
+        execSQL(strSQL)
     }
     fun taoMau(mau: Mau){
-        val values = ContentValues()
-        values.put("id", mau.id)
-        values.put("ma", mau.ma)
-        val db = this.writableDatabase
-        db.insert("mau", null, values)
-        db.close()
+        val id = mau.id
+        val ma = mau.ma
+        val strSQL = "insert into mau(id, ma, trangthai) values(" +
+                "\"$id\","+
+                "\"$ma\","+
+                "\"0\","
+        execSQL(strSQL)
     }
     fun rawQuery(query: String): Cursor?{
         val db = this.readableDatabase
@@ -133,17 +150,54 @@ class TimeTableDBHelper(
         var randomstr: String
         do {
             check = false
-            val strleng = random.nextInt()%15+1
+            val strleng = abs(random.nextInt()%15+7)
             val charset = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789"
             randomstr =  (1..strleng)
                 .map { charset.random() }
                 .joinToString("")
-            val a = rawQuery("select * from "+tableName+" where id = "+randomstr)
+            val a = rawQuery("select * from "+tableName+" where id = '"+randomstr+"'")
             if (a?.moveToFirst()==true){
                 check = true
             }
         }
             while (check);
         return randomstr
+    }
+    fun getCString(cursor: Cursor, name: String): String{
+        val index = cursor.getColumnIndex(name)
+        if(index ==-1){
+            return ""
+        }
+        return cursor.getString(index)
+    }
+    fun taoVaLayIdAnh(url: String): String{
+        val id = getAnUniqueId("anh")
+        taoAnh(Anh(id, url, "0"))
+        return id
+    }
+    private fun xoaDuLieuNhiemVuTamThoi(){
+        xoaDuLieuTam("nhiemvu")
+    }
+    fun xoaDuLieuGhiChuTamThoi(){
+        xoaDuLieuTam("ghichu")
+    }
+    fun xoaDuLieuMauTamThoi(){
+        xoaDuLieuTam("mau")
+    }
+    fun xoaDuLieuAnhTamThoi(){
+        xoaDuLieuTam("anh")
+    }
+     fun xoaDuLieuThongBaoTamThoi(){
+        xoaDuLieuTam("thongbao")
+    }
+    private fun xoaDuLieuTam(tableName: String){
+        execSQL("delete $tableName where trangthai = \"0\"")
+    }
+    fun luuDuLieuTam(tableName: String, listId: MutableList<String>){
+        for(id in listId){
+            execSQL("update $tableName set trangthai = \"1\" where id = \"$id\"")
+        }
+        Thread.sleep(2000)
+        xoaDuLieuTam(tableName)
     }
 }
